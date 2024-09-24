@@ -3,11 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant</title>
+    <title>Data Visualization AI Assistant</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <!-- Upload Area -->
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click();">
+        <p>Drag and drop a CSV file here or click to upload</p>
+        <input type="file" id="fileInput" accept=".csv" style="display: none;" />
+    </div>
+
+    <!-- Button to show/hide table preview -->
+    <button id="previewToggleBtn" style="display: none;" onclick="toggleTablePreview()">Show Table Preview</button>
+
+    <!-- Container to display the table preview -->
+    <div id="tablePreview" style="display: none;"></div>
+
+    <!-- Container to display the Vega-Lite chart -->
+    <div id="chartContainer" style="display: none;"></div>
+
+    <!-- Chat Container -->
     <div class="chat-container">
         <header class="chat-header">
             <img src="/static/openai.svg" alt="AI Assistant Logo" class="logo">
@@ -22,6 +38,12 @@
             <button id="restartBtn">Restart the chat</button>
         </div>
     </div>
+    
+    <!-- Import Vega and Vega-Lite libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
     <script src="/static/script.js" defer></script>
 </body>
 </html>
