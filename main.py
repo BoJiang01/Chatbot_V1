@@ -112,7 +112,7 @@ def construct_chatgpt_prompt(user_message, df):
     # Construct a prompt that includes column names, types, and sample values for context
     column_info = []
     for col in df.columns:
-        sample_values = df[col].dropna()[:15]  # Getting up to 5 unique sample values
+        sample_values = df[col][:10]  # Getting up to 5 unique sample values
         col_type = "categorical" if df[col].dtype == "object" else "numerical"
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             col_type = "temporal"
@@ -123,28 +123,47 @@ def construct_chatgpt_prompt(user_message, df):
         })
 
     prompt = f"""
-You are an expert data visualization assistant. The user provided this request: '{user_message}'.
-You have access to the following dataset with columns and details:
+You are an expert in data visualization. The user has provided the following query: '{user_message}'.
+
+You have access to a dataset with the following columns and associated information:
 {json.dumps(column_info, indent=2)}
 
-If the user's request is related to data visualization but is vague, short, or simply mentions a column name, intelligently choose the most appropriate chart type based on the column's data type:
-- Use a "bar" chart for categorical data.
-- Use a "line" or "area" chart for temporal data.
-- Use a "scatter" plot for quantitative data pairs.
-- If the request contains a single column, generate a simple distribution plot (e.g., a bar chart for categorical data or a histogram for numerical data).
+If the user's request relates to creating a data visualization (pay close attention to words refering to columns of the dataset), generate a JSON response that contains:
+1. "bot_response": A concise explanation of the chart that you've created.
+2. "chart": A full Vega-Lite specification, including:
+   - "$schema": The URL for the Vega-Lite schema.
+   - "data": A JSON object that includes the sample data points under the "values" key.
+   - "mark": The type of visualization to be generated (e.g., "bar", "line", "point").
+   - "encoding": Details on how the data fields are mapped to the axes and other visual elements (x-axis, y-axis, color, etc.).
 
-Generate a JSON response containing:
-1. "bot_response": A brief message describing the chart you generated based on the inferred visualization type.
-2. "chart": The complete Vega-Lite specification for the chart, including:
-   - "$schema": The Vega-Lite schema URL.
-   - "description": A description of the chart.
-   - "data": {{"values": [..]}} where the values correspond to sample data points from the dataset.
-   - "mark": The type of chart (e.g., "bar", "point", "line").
-   - "encoding": Mappings of data fields to the x and y axes, and any other relevant encodings.
-
-If the user's request is NOT related to data visualization, respond with:
+If the user's request is unrelated to data visualization or analysis, provide the following response:
 {{
-  "bot_response": "Your request does not seem to be related to data visualization. Please ask a question about visualizing data from the provided dataset."
+  "bot_response": "It seems that your request is unrelated to data visualization. It does not involve any analysis or visualization task."
+}}
+
+Here is an example of the Vega-Lite specification format:
+{{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {{
+    "values": [
+      {{"category": "A", "group": "x", "value": 0.1}},
+      {{"category": "A", "group": "y", "value": 0.6}},
+      {{"category": "A", "group": "z", "value": 0.9}},
+      {{"category": "B", "group": "x", "value": 0.7}},
+      {{"category": "B", "group": "y", "value": 0.2}},
+      {{"category": "B", "group": "z", "value": 1.1}},
+      {{"category": "C", "group": "x", "value": 0.6}},
+      {{"category": "C", "group": "y", "value": 0.1}},
+      {{"category": "C", "group": "z", "value": 0.2}}
+    ]
+  }},
+  "mark": "bar",
+  "encoding": {{
+    "x": {{"field": "category"}},
+    "y": {{"field": "value", "type": "quantitative"}},
+    "xOffset": {{"field": "group"}},
+    "color": {{"field": "group"}}
+  }}
 }}
 """
 

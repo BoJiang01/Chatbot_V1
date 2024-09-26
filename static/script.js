@@ -82,7 +82,7 @@ async function handleFileUpload(file) {
         formData.append('file', file);
 
         try {
-            const response = await fetch('https://chatbot-v1-0o4r.onrender.com/upload-csv/', {
+            const response = await fetch('http://127.0.0.1:8000/upload-csv/', {
                 method: 'POST',
                 body: formData,
             });
@@ -113,7 +113,7 @@ async function sendMessage() {
         userInput.value = '';
 
         try {
-            const response = await fetch('https://chatbot-v1-0o4r.onrender.com/chat/', {
+            const response = await fetch('http://127.0.0.1:8000/chat/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: message }),
