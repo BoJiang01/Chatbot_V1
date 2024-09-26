@@ -112,7 +112,7 @@ def construct_chatgpt_prompt(user_message, df):
     # Construct a prompt that includes column names, types, and sample values for context
     column_info = []
     for col in df.columns:
-        sample_values = df[col].dropna().unique()[:5]  # Getting up to 5 unique sample values
+        sample_values = df[col].dropna()[:15]  # Getting up to 5 unique sample values
         col_type = "categorical" if df[col].dtype == "object" else "numerical"
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             col_type = "temporal"
@@ -127,12 +127,18 @@ You are an expert data visualization assistant. The user provided this request: 
 You have access to the following dataset with columns and details:
 {json.dumps(column_info, indent=2)}
 
-If the user's request is related to data visualization, generate a JSON response containing:
-1. "bot_response": A brief message describing the chart you generated.
+If the user's request is related to data visualization but is vague, short, or simply mentions a column name, intelligently choose the most appropriate chart type based on the column's data type:
+- Use a "bar" chart for categorical data.
+- Use a "line" or "area" chart for temporal data.
+- Use a "scatter" plot for quantitative data pairs.
+- If the request contains a single column, generate a simple distribution plot (e.g., a bar chart for categorical data or a histogram for numerical data).
+
+Generate a JSON response containing:
+1. "bot_response": A brief message describing the chart you generated based on the inferred visualization type.
 2. "chart": The complete Vega-Lite specification for the chart, including:
    - "$schema": The Vega-Lite schema URL.
    - "description": A description of the chart.
-   - "data": {{"values": [..]}} where the values correspond to sample data points.
+   - "data": {{"values": [..]}} where the values correspond to sample data points from the dataset.
    - "mark": The type of chart (e.g., "bar", "point", "line").
    - "encoding": Mappings of data fields to the x and y axes, and any other relevant encodings.
 
